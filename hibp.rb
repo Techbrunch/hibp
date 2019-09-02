@@ -5,20 +5,23 @@ require 'json'
 
 results = []
 
-File.open(ARGV[0]).each do |email|
-  response = HTTParty.get("https://api.haveibeenpwned.com/unifiedsearch/" + email.strip!.sub('@', '%40'), {
+#HTTParty::Basement.http_proxy('127.0.0.1', 8080, nil, nil)
+
+ARGF.each_with_index do |email|
+  response = HTTParty.get("https://haveibeenpwned.com/unifiedsearch/" + email.strip!.sub('@', '%40'), {
     headers: {
-        'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0',
-        'Accept' => '*/*',
-        'Accept-Language' => 'en-GB,en;q=0.5',
-        'Referer' => 'https://haveibeenpwned.com/',
-        'Origin' => 'https://haveibeenpwned.com/'
+        'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36',
+        'Host' => 'haveibeenpwned.com',
+        'Accept-Language' => 'en-GB,en-US;q=0.9,en;q=0.8,fr;q=0.7',
     },
-    #debug_output: STDOUT
+    #debug_output: STDOUT,
+    #verify: false
   })
   if response.code == 200
     json = JSON.parse(response.body)
-    results.push({email: email, breaches: json['Breaches']})
+    result = {email: email, breaches: json['Breaches']}
+    puts JSON.pretty_generate(result)
+    results.push(result)
   elsif response.code != 404
     puts response.body, response.code, response.message, response.headers.inspect
   end
